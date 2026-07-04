@@ -16,7 +16,7 @@ async function readDb() {
   const redis = getRedis();
   const data = await redis.get(DB_KEY);
   if (!data) {
-    return { counter: 200, applications: [], config: { sheetWebhookUrl: '' } };
+    return { counter: 200, applications: [], config: { sheetWebhookUrl: 'https://script.google.com/macros/s/AKfycbzwWDogT3bo4dK2ReXvP6ziBuaB-0biPab6-I1d4pVkHqcMg8fGP7nIIk-srEV3jsSy/exec' } };
   }
   // The SDK may hand back a parsed object or a raw string depending on how
   // it was stored — handle both so this never breaks on a format change.
@@ -24,7 +24,7 @@ async function readDb() {
     try {
       return JSON.parse(data);
     } catch (e) {
-      return { counter: 200, applications: [], config: { sheetWebhookUrl: '' } };
+      return { counter: 200, applications: [], config: { sheetWebhookUrl: 'https://script.google.com/macros/s/AKfycbzwWDogT3bo4dK2ReXvP6ziBuaB-0biPab6-I1d4pVkHqcMg8fGP7nIIk-srEV3jsSy/exec' } };
     }
   }
   return data;

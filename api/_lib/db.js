@@ -5,9 +5,20 @@ const DB_KEY = 'xpd:db';
 let client = null;
 function getRedis() {
   if (!client) {
-    // Reads UPSTASH_REDIS_REST_URL / UPSTASH_REDIS_REST_TOKEN (or the legacy
-    // KV_REST_API_URL / KV_REST_API_TOKEN names) from environment variables.
-    client = Redis.fromEnv();
+    // Vercel's Upstash Marketplace integration uses UPSTASH_REDIS_REST_URL/TOKEN.
+    // Older "Vercel KV" style projects use KV_REST_API_URL/TOKEN instead.
+    // Check both explicitly rather than relying on Redis.fromEnv() to guess.
+    const url = process.env.UPSTASH_REDIS_REST_URL || process.env.KV_REST_API_URL;
+    const token = process.env.UPSTASH_REDIS_REST_TOKEN || process.env.KV_REST_API_TOKEN;
+
+    if (!url || !token) {
+      throw new Error(
+        'Redis credentials not found. Expected UPSTASH_REDIS_REST_URL/UPSTASH_REDIS_REST_TOKEN ' +
+        'or KV_REST_API_URL/KV_REST_API_TOKEN in environment variables.'
+      );
+    }
+
+    client = new Redis({ url, token });
   }
   return client;
 }
@@ -16,7 +27,7 @@ async function readDb() {
   const redis = getRedis();
   const data = await redis.get(DB_KEY);
   if (!data) {
-    return { counter: 200, applications: [], config: { sheetWebhookUrl: 'https://script.google.com/macros/s/AKfycbzwWDogT3bo4dK2ReXvP6ziBuaB-0biPab6-I1d4pVkHqcMg8fGP7nIIk-srEV3jsSy/exec' } };
+    return { counter: 200, applications: [], config: { sheetWebhookUrl: '' } };
   }
   // The SDK may hand back a parsed object or a raw string depending on how
   // it was stored — handle both so this never breaks on a format change.
@@ -24,7 +35,7 @@ async function readDb() {
     try {
       return JSON.parse(data);
     } catch (e) {
-      return { counter: 200, applications: [], config: { sheetWebhookUrl: 'https://script.google.com/macros/s/AKfycbzwWDogT3bo4dK2ReXvP6ziBuaB-0biPab6-I1d4pVkHqcMg8fGP7nIIk-srEV3jsSy/exec' } };
+      return { counter: 200, applications: [], config: { sheetWebhookUrl: '' } };
     }
   }
   return data;

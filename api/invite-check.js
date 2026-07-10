@@ -13,7 +13,7 @@ module.exports = async (req, res) => {
     if (!invite) return res.status(200).json({ valid: false, reason: 'not_found' });
     if (invite.used) return res.status(200).json({ valid: false, reason: 'used' });
 
-    return res.status(200).json({ valid: true, discordId: invite.discordId, label: invite.label });
+    return res.status(200).json({ valid: true });
   } catch (err) {
     console.error('invite-check error:', err);
     res.status(500).json({ valid: false, reason: 'server_error', detail: err.message || String(err) });

@@ -197,8 +197,8 @@
             <input type="text" id="discordname" placeholder="e.g. rowdygaming">
           </div>
           <div>
-            <label class="field-label" for="discordid">Discord ID <span class="optional-tag">(from your invite link)</span></label>
-            <input type="text" id="discordid" readonly>
+            <label class="field-label" for="discordid">Discord ID</label>
+            <input type="text" id="discordid" placeholder="e.g. 123456789012345678">
           </div>
         </div>
         <div class="field-row">
@@ -425,8 +425,6 @@
       }
 
       inviteToken = token;
-      discordid.value = data.discordId;
-      if(data.label) discordname.value = data.label;
 
       gateScreen.style.display = 'none';
       formArea.style.display = '';

@@ -77,6 +77,14 @@
   }
   input[type=text]:focus{border-bottom-color:var(--stamp-red);box-shadow:0 1px 0 0 var(--stamp-red);}
   input[type=text]::placeholder{color:#8a8265;}
+  textarea{
+    width:100%;border:1.5px solid rgba(33,29,21,0.35);background:rgba(255,255,255,0.25);border-radius:3px;
+    font-family:'Inter',sans-serif;font-size:14.5px;color:var(--paper-text);padding:10px 12px;outline:none;
+    resize:vertical;min-height:90px;line-height:1.5;transition:border-color .15s ease, box-shadow .15s ease;
+  }
+  textarea:focus{border-color:var(--stamp-red);box-shadow:0 0 0 1px var(--stamp-red);}
+  textarea::placeholder{color:#8a8265;}
+  .optional-tag{font-weight:500;text-transform:none;letter-spacing:0;color:#8a8265;font-size:11.5px;}
 
   .rule{display:flex;gap:12px;align-items:flex-start;padding:12px 0;border-bottom:1px dotted rgba(33,29,21,0.2);}
   .rule:last-child{border-bottom:none;}
@@ -201,15 +209,15 @@
         <legend>02 — Conduct &amp; Roleplay Standards</legend>
         <div class="rule">
           <input type="checkbox" class="ack" id="r1">
-          <label for="r1" class="rule-text">I will not <b>metagame</b> (use out-of-character info in character) or <b>powergame</b> (force outcomes on other players without letting them react).</label>
+          <label for="r1" class="rule-text">I will not <b>metagame</b> (use info I only know out of character) or <b>powergame</b> (force things on other players without letting them react).</label>
         </div>
         <div class="rule">
           <input type="checkbox" class="ack" id="r2">
-          <label for="r2" class="rule-text">I will stay in character for the duration of a scene and will not <b>fail RP</b> or combat log to avoid a consequence.</label>
+          <label for="r2" class="rule-text">I will stay in character during a scene. I will not <b>fail RP</b> or combat log to avoid a consequence.</label>
         </div>
         <div class="rule">
           <input type="checkbox" class="ack" id="r3">
-          <label for="r3" class="rule-text">As a cadet, I will follow the direction of my Field Training Officer and defer to higher ranks during every scene until I've completed my probationary period.</label>
+          <label for="r3" class="rule-text">As a cadet, I will follow my Field Training Officer's instructions and listen to higher ranks in every scene until my probation is done.</label>
         </div>
       </fieldset>
 
@@ -217,11 +225,11 @@
         <legend>03 — Use of Force</legend>
         <div class="rule">
           <input type="checkbox" class="ack" id="r4">
-          <label for="r4" class="rule-text">I will use <b>proportional force</b> — verbal commands and de-escalation before lethal options, matching the suspect's own escalation.</label>
+          <label for="r4" class="rule-text">I will use <b>fair force</b> — verbal commands and de-escalation first, before lethal options, matching how far the suspect escalates.</label>
         </div>
         <div class="rule">
           <input type="checkbox" class="ack" id="r5">
-          <label for="r5" class="rule-text">I will give a reasonable opportunity to comply and will not initiate combat over minor or victimless RP, and I will not use force unsupervised while still a cadet.</label>
+          <label for="r5" class="rule-text">I will give people a fair chance to comply. I will not start a fight over small or victimless RP, and I will not use force on my own while I am still a cadet.</label>
         </div>
       </fieldset>
 
@@ -229,24 +237,90 @@
         <legend>04 — Radio &amp; Communication</legend>
         <div class="rule">
           <input type="checkbox" class="ack" id="r6">
-          <label for="r6" class="rule-text">I will use correct radio etiquette and department codes on official channels, and keep OOC chatter off the in-character radio.</label>
+          <label for="r6" class="rule-text">I will use correct radio etiquette and department codes on official channels, and keep out-of-character chat off the in-character radio.</label>
         </div>
       </fieldset>
 
       <fieldset>
-        <legend>05 — Consequences</legend>
+        <legend>05 — Gang Affiliation &amp; Activity Requirements</legend>
         <div class="rule">
           <input type="checkbox" class="ack" id="r7">
-          <label for="r7" class="rule-text">I understand violations may result in a verbal warning, extended probation, demotion, or removal from the Cadet Program depending on severity.</label>
+          <label for="r7" class="rule-text">If I am in a gang, I understand I can only join the Police Department if I agree to be online during <b>peak hours (9:00 PM – 1:00 AM)</b> and do at least <b>15 hours of PD duty every week</b>, completed during peak hours.</label>
         </div>
         <div class="rule">
           <input type="checkbox" class="ack" id="r8">
-          <label for="r8" class="rule-text">Staff rulings on scenes are final; disputes go through the ticket system, never argued in character or in public chat.</label>
+          <label for="r8" class="rule-text">I understand I need to stay active in the city while I am in the Police Department, especially during peak hours. Being inactive too often may lead to punishment or removal.</label>
         </div>
       </fieldset>
 
       <fieldset>
-        <legend>06 — Signature</legend>
+        <legend>06 — Communication Standards</legend>
+        <div class="rule">
+          <input type="checkbox" class="ack" id="r9">
+          <label for="r9" class="rule-text">I can talk clearly and understand instructions well, and I have a <b>working microphone</b> that gives clear voice communication.</label>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>07 — Duty Recording</legend>
+        <div class="rule">
+          <input type="checkbox" class="ack" id="r10">
+          <label for="r10" class="rule-text">I understand I must <b>record every duty shift</b>, using OBS, NVIDIA ShadowPlay, Medal, SteelSeries Moments, or a similar app. The recording must show my gameplay and my in-game voice clearly (low quality is fine, but it must be clear). I must start recording before duty starts and keep recording for the whole shift.</label>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>08 — Supervised Duty &amp; Decision-Making</legend>
+        <div class="rule">
+          <input type="checkbox" class="ack" id="r11">
+          <label for="r11" class="rule-text">As a new <b>Cadet</b>, I understand I cannot go on duty alone. I can only go on duty when a <b>Senior Officer (Officer 2nd Class or higher)</b> is already on duty to guide me.</label>
+        </div>
+        <div class="rule">
+          <input type="checkbox" class="ack" id="r12">
+          <label for="r12" class="rule-text">I understand that as a Cadet I cannot make big decisions on my own. I must follow senior officers' instructions until I am promoted to an Officer rank.</label>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>09 — Minimum Service Commitment</legend>
+        <div class="rule">
+          <input type="checkbox" class="ack" id="r13">
+          <label for="r13" class="rule-text">I understand that by joining the Police Department, I am agreeing to stay for at least <b>30 play days</b> (not 30 days since I joined), and I must complete the required hours during that time.</label>
+        </div>
+        <div class="rule">
+          <input type="checkbox" class="ack" id="r14">
+          <label for="r14" class="rule-text">I understand that if I try to resign before finishing this commitment, it will <b>not be accepted</b> unless PD Management approves it. If I fail to complete this without approval, I could have my character <b>wiped</b> and face job restrictions, based on PD Management's decision.</label>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>10 — Consequences</legend>
+        <div class="rule">
+          <input type="checkbox" class="ack" id="r15">
+          <label for="r15" class="rule-text">I understand that breaking these rules may lead to a warning, longer probation, demotion, or removal from the Cadet Program, depending on how serious it is.</label>
+        </div>
+        <div class="rule">
+          <input type="checkbox" class="ack" id="r16">
+          <label for="r16" class="rule-text">I understand that staff decisions on scenes are final. If I disagree, I will use the ticket system, not argue in character or in public chat.</label>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>11 — Final Acknowledgement</legend>
+        <div class="rule">
+          <input type="checkbox" class="ack" id="r17">
+          <label for="r17" class="rule-text">I have read and understood everything above, and I agree to follow all of these rules. I understand that not following them may lead to punishment or removal from the Police Department.</label>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>12 — Anything Else? <span class="optional-tag">(optional)</span></legend>
+        <label class="field-label" for="notes">Anything you'd like to tell us</label>
+        <textarea id="notes" placeholder="Questions, context, or anything else the interview officials should know — leave blank if nothing to add."></textarea>
+      </fieldset>
+
+      <fieldset>
+        <legend>13 — Signature</legend>
         <div class="sig-area">
           <input type="text" class="sig-input" id="signature" placeholder="Type your full name">
           <div class="sig-caption">Full legal / cadet name</div>
@@ -260,7 +334,7 @@
       <div class="actions">
         <div class="progress-block">
           <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
-          <div class="progress-label" id="progress">0 / 8 items confirmed</div>
+          <div class="progress-label" id="progress">0 / 17 items confirmed</div>
         </div>
         <button class="submit" id="submitBtn" disabled>Submit acknowledgement</button>
       </div>
@@ -287,6 +361,7 @@
   const discordid = document.getElementById('discordid');
   const charname = document.getElementById('charname');
   const availability = document.getElementById('availability');
+  const notes = document.getElementById('notes');
   const stamp = document.getElementById('stamp');
   const stampDate = document.getElementById('stampDate');
   const lockedNote = document.getElementById('lockedNote');
@@ -342,6 +417,7 @@
       discordId: discordid.value.trim(),
       charname: charname.value.trim(),
       availability: availability.value.trim(),
+      notes: notes.value.trim(),
       signature: signature.value.trim(),
       date: dateTimeStr,
       ack: checks.map(c => c.checked)
@@ -362,7 +438,7 @@
       stampDate.textContent = dateTimeStr;
       stamp.classList.add('show');
 
-      [...checks, signature, discordname, discordid, charname, availability].forEach(el => el.disabled = true);
+      [...checks, signature, discordname, discordid, charname, availability, notes].forEach(el => el.disabled = true);
       submitBtn.textContent = 'Acknowledged';
       lockedNote.classList.add('show');
       lockedNote.textContent = payload.charname + ' (Form No. ' + data.formNumber + ') acknowledged the cadet guidelines on ' + dateTimeStr + '. Your application is now pending review.';

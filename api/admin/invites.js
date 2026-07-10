@@ -22,29 +22,24 @@ module.exports = async (req, res) => {
     }
 
     if (req.method === 'POST') {
-      const { discordId, label } = parseBody(req);
-      if (!discordId || !String(discordId).trim()) {
-        return res.status(400).json({ error: 'Discord ID is required.' });
-      }
-      const cleanId = String(discordId).trim().slice(0, 100);
+      const { label, quantity } = parseBody(req);
+      const qty = Math.min(Math.max(parseInt(quantity, 10) || 1, 1), 50);
 
-      const alreadyOpen = db.invites.find((i) => i.discordId === cleanId && !i.used);
-      if (alreadyOpen) {
-        return res.status(200).json({ ok: true, invite: alreadyOpen, reused: true });
+      const created = [];
+      for (let n = 0; n < qty; n++) {
+        const invite = {
+          id: crypto.randomBytes(10).toString('hex'),
+          label: String(label || '').trim().slice(0, 100),
+          used: false,
+          createdAt: Date.now(),
+          usedAt: null,
+          applicationId: null
+        };
+        db.invites.push(invite);
+        created.push(invite);
       }
-
-      const invite = {
-        id: crypto.randomBytes(10).toString('hex'),
-        discordId: cleanId,
-        label: String(label || '').trim().slice(0, 100),
-        used: false,
-        createdAt: Date.now(),
-        usedAt: null,
-        applicationId: null
-      };
-      db.invites.push(invite);
       await writeDb(db);
-      return res.status(200).json({ ok: true, invite });
+      return res.status(200).json({ ok: true, invites: created });
     }
 
     if (req.method === 'DELETE') {

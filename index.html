@@ -483,7 +483,7 @@
       const data = await res.json();
 
       if(!res.ok){
-        throw new Error(data.error || 'Something went wrong submitting the form.');
+        throw new Error((data.error || 'Something went wrong submitting the form.') + (data.detail ? ' (' + data.detail + ')' : ''));
       }
 
       stampDate.textContent = dateTimeStr;

@@ -218,7 +218,7 @@
   /* modal */
   .modal-overlay{display:none;position:fixed;inset:0;background:rgba(4,7,11,0.75);align-items:center;justify-content:center;z-index:50;padding:20px;}
   .modal-overlay.show{display:flex;}
-  .modal{background:var(--surface);border:1px solid var(--border-strong);border-radius:10px;max-width:540px;width:100%;max-height:88vh;overflow-y:auto;box-shadow:0 40px 90px -30px rgba(0,0,0,0.8);}
+  .modal{background:var(--surface);border:1px solid var(--border-strong);border-radius:10px;max-width:640px;width:100%;max-height:88vh;overflow-y:auto;box-shadow:0 40px 90px -30px rgba(0,0,0,0.8);}
   .modal-head{display:flex;justify-content:space-between;align-items:center;padding:18px 22px;border-bottom:1px solid var(--border);}
   .modal-head .num{font-family:'IBM Plex Mono',monospace;color:var(--text-dim);font-size:13px;}
   .modal-close{background:none;border:none;color:var(--text-faint);font-size:20px;cursor:pointer;line-height:1;}
@@ -231,6 +231,31 @@
   .detail-grid .full-width span{white-space:pre-wrap;line-height:1.5;}
   .sig-block{border-top:1px dashed var(--border-strong);padding-top:16px;margin-top:4px;}
   .sig-block .sig{font-family:'Dancing Script',cursive;font-size:28px;color:var(--text);}
+
+  /* ---- doc-replica: mirrors the applicant-facing form's paper look, scoped so it doesn't touch the dashboard theme ---- */
+  .doc-replica{
+    --paper:#ece5d3; --paper-2:#e2d9c2; --paper-text:#211d15; --stamp-red:#8f2a2a; --badge-gold:#b8912f;
+    background:
+      radial-gradient(700px 300px at 10% -10%, rgba(184,145,47,0.10), transparent 60%),
+      linear-gradient(180deg, var(--paper), var(--paper-2));
+    color:var(--paper-text);
+    border-radius:6px;
+    padding:20px 22px;
+    margin-top:16px;
+  }
+  .doc-replica .dr-id-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px 20px;padding-bottom:16px;margin-bottom:16px;border-bottom:1px solid rgba(33,29,21,0.18);}
+  .doc-replica .dr-id-grid div b{display:block;font-size:10.5px;text-transform:uppercase;letter-spacing:0.6px;color:#6b6550;margin-bottom:2px;font-weight:600;font-family:'IBM Plex Mono',monospace;}
+  .doc-replica .dr-id-grid div span{font-size:14px;}
+  .doc-replica .dr-id-grid .full-width{grid-column:1 / -1;white-space:pre-wrap;line-height:1.5;}
+  .doc-replica .dr-section{margin-bottom:16px;}
+  .doc-replica .dr-legend{font-family:'IBM Plex Mono',monospace;font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--stamp-red);font-weight:700;margin-bottom:8px;padding-bottom:4px;border-bottom:1px solid rgba(143,42,42,0.25);}
+  .doc-replica .dr-item{display:flex;gap:9px;align-items:flex-start;margin-bottom:8px;font-size:13.5px;line-height:1.5;}
+  .doc-replica .dr-item .dr-check{flex:none;width:16px;height:16px;border-radius:3px;background:var(--stamp-red);color:#fff;font-size:11px;line-height:16px;text-align:center;margin-top:1px;}
+  .doc-replica .dr-item b{color:var(--stamp-red);}
+  .doc-replica .dr-unavailable{font-size:13px;color:#6b6550;font-style:italic;}
+  .doc-replica .dr-sig{border-top:1px dashed rgba(33,29,21,0.3);padding-top:14px;margin-top:4px;}
+  .doc-replica .dr-sig .sig{font-family:'Dancing Script',cursive;font-size:26px;color:var(--paper-text);}
+  .doc-replica .dr-sig small{display:block;font-family:'IBM Plex Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:0.8px;color:#6b6550;margin-top:2px;}
   .sig-block small{display:block;color:var(--text-faint);font-size:10.5px;text-transform:uppercase;letter-spacing:0.6px;margin-top:4px;}
   .modal-foot{display:flex;justify-content:flex-end;gap:10px;padding:16px 22px;border-top:1px solid var(--border);}
 
@@ -431,11 +456,7 @@
       <button class="modal-close" id="modalClose">&times;</button>
     </div>
     <div class="modal-body">
-      <div class="detail-grid" id="modalGrid"></div>
-      <div class="sig-block">
-        <span class="sig" id="modalSig">—</span>
-        <small>Digital signature</small>
-      </div>
+      <div class="doc-replica" id="modalDoc"></div>
     </div>
     <div class="modal-foot" id="modalFoot"></div>
   </div>
@@ -467,8 +488,7 @@
 
   const modalOverlay = document.getElementById('modalOverlay');
   const modalFormNum = document.getElementById('modalFormNum');
-  const modalGrid = document.getElementById('modalGrid');
-  const modalSig = document.getElementById('modalSig');
+  const modalDoc = document.getElementById('modalDoc');
   const modalFoot = document.getElementById('modalFoot');
   const modalClose = document.getElementById('modalClose');
 
@@ -719,7 +739,8 @@
     const status = e.status || 'pending';
 
     modalFormNum.textContent = 'FORM NO. ' + (e.formNumber !== undefined ? e.formNumber : '—');
-    modalGrid.innerHTML =
+
+    let html = '<div class="dr-id-grid">' +
       '<div><b>Cadet name</b><span>' + escapeHtml(e.charname||'—') + '</span></div>' +
       '<div><b>Status</b><span class="pill ' + status + '">' + status + '</span></div>' +
       '<div><b>Discord name</b><span>' + escapeHtml(e.discordName||'—') + '</span></div>' +
@@ -727,8 +748,25 @@
       '<div><b>Availability</b><span>' + escapeHtml(e.availability||'—') + '</span></div>' +
       '<div><b>Filed</b><span>' + escapeHtml(e.date||'—') + '</span></div>' +
       (e.reviewedBy ? '<div><b>Reviewed by</b><span>' + escapeHtml(e.reviewedBy) + '</span></div>' : '') +
-      (e.notes ? '<div class="full-width"><b>Additional notes</b><span>' + escapeHtml(e.notes) + '</span></div>' : '');
-    modalSig.textContent = e.signature || '—';
+      (e.notes ? '<div class="full-width"><b>Additional notes</b><span>' + escapeHtml(e.notes) + '</span></div>' : '') +
+      '</div>';
+
+    if(Array.isArray(e.ackSections) && e.ackSections.length){
+      html += e.ackSections.map(section =>
+        '<div class="dr-section">' +
+          '<div class="dr-legend">' + escapeHtml(section.legend||'') + '</div>' +
+          (section.items||[]).map(item =>
+            '<div class="dr-item"><span class="dr-check">✓</span><span>' + item + '</span></div>'
+          ).join('') +
+        '</div>'
+      ).join('');
+    } else {
+      html += '<p class="dr-unavailable">Guideline breakdown isn\'t available for this application (submitted before this view existed).</p>';
+    }
+
+    html += '<div class="dr-sig"><span class="sig">' + escapeHtml(e.signature||'—') + '</span><small>Digital signature</small></div>';
+
+    modalDoc.innerHTML = html;
 
     modalFoot.innerHTML = (status === 'pending'
       ? '<button class="btn reject" data-id="' + e.id + '" data-action="rejected">Reject</button>' +

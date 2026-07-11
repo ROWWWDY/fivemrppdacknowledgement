@@ -382,23 +382,23 @@
       <div class="panel sync-card" style="margin-bottom:20px;">
         <div class="sync-row">
           <div class="field">
-            <label for="inviteDiscordId">Discord ID</label>
-            <input type="text" id="inviteDiscordId" placeholder="e.g. 123456789012345678">
+            <label for="inviteLabel">Note <span style="text-transform:none;font-weight:400;">(optional, for your own reference)</span></label>
+            <input type="text" id="inviteLabel" placeholder="e.g. for John">
           </div>
-          <div class="field">
-            <label for="inviteLabel">Name / label <span style="text-transform:none;font-weight:400;">(optional)</span></label>
-            <input type="text" id="inviteLabel" placeholder="e.g. John">
+          <div class="field" style="max-width:120px;">
+            <label for="inviteQty">How many</label>
+            <input type="number" id="inviteQty" min="1" max="50" value="1">
           </div>
-          <button class="btn primary" id="createInviteBtn">Create invite link</button>
+          <button class="btn primary" id="createInviteBtn">Generate</button>
         </div>
-        <p class="sync-note">Each link works once. After someone submits the form with it, the link locks. Rejecting their application automatically reopens it so they can try again.</p>
+        <p class="sync-note">Each link is a random one-time code — no need to tie it to anyone ahead of time. Share it with whoever's applying next. It locks after one submission, and rejecting an application reopens its link automatically.</p>
         <div class="sync-status" id="inviteCreateStatus"><span>—</span></div>
       </div>
 
       <div class="table-wrap">
         <table>
           <thead>
-            <tr><th>Discord ID</th><th>Label</th><th>Status</th><th>Link</th><th></th></tr>
+            <tr><th>Note</th><th>Status</th><th>Link</th><th></th></tr>
           </thead>
           <tbody id="inviteTableBody"></tbody>
         </table>
@@ -787,8 +787,8 @@
   }
 
   /* ---------------- invites ---------------- */
-  const inviteDiscordId = document.getElementById('inviteDiscordId');
   const inviteLabel = document.getElementById('inviteLabel');
+  const inviteQty = document.getElementById('inviteQty');
   const createInviteBtn = document.getElementById('createInviteBtn');
   const inviteCreateStatus = document.getElementById('inviteCreateStatus');
   const inviteTableBody = document.getElementById('inviteTableBody');
@@ -820,7 +820,6 @@
         ? '<span class="pill accepted" style="background:var(--rejected-bg);color:var(--rejected);">used</span>'
         : '<span class="pill pending">unused</span>';
       return '<tr>' +
-        '<td>' + escapeHtml(i.discordId) + '</td>' +
         '<td>' + escapeHtml(i.label || '—') + '</td>' +
         '<td>' + statusPill + '</td>' +
         '<td><code style="font-size:12px;">' + escapeHtml(inviteLink(i.id)) + '</code></td>' +
@@ -855,29 +854,24 @@
   }
 
   createInviteBtn.addEventListener('click', async function(){
-    const discordId = inviteDiscordId.value.trim();
-    if(!discordId){
-      inviteCreateStatus.innerHTML = '<span style="color:var(--rejected);">Discord ID is required.</span>';
-      return;
-    }
+    const qty = Math.min(Math.max(parseInt(inviteQty.value, 10) || 1, 1), 50);
     createInviteBtn.disabled = true;
     try{
       const res = await fetch('/api/admin/invites', {
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ discordId, label: inviteLabel.value.trim() })
+        body: JSON.stringify({ label: inviteLabel.value.trim(), quantity: qty })
       });
       const data = await res.json();
       if(!res.ok){
         inviteCreateStatus.innerHTML = '<span style="color:var(--rejected);">' + escapeHtml(data.error || 'Could not create invite.') + '</span>';
         return;
       }
-      inviteCreateStatus.innerHTML = data.reused
-        ? '<span style="color:var(--accepted);">✓ This Discord ID already has an unused invite — showing it below.</span>'
-        : '<span style="color:var(--accepted);">✓ Invite created.</span>';
-      inviteDiscordId.value = '';
+      const count = (data.invites || []).length;
+      inviteCreateStatus.innerHTML = '<span style="color:var(--accepted);">✓ Generated ' + count + ' invite link' + (count === 1 ? '' : 's') + '.</span>';
       inviteLabel.value = '';
+      inviteQty.value = '1';
       loadInvites();
     }catch(e){
       inviteCreateStatus.innerHTML = '<span style="color:var(--rejected);">Could not reach the server.</span>';

@@ -1,5 +1,5 @@
 const crypto = require('crypto');
-const { verifyRequest } = require('../_lib/auth');
+const { requireOwner } = require('../_lib/auth');
 const { readDb, writeDb } = require('../_lib/db');
 
 function parseBody(req) {
@@ -11,7 +11,7 @@ function parseBody(req) {
 }
 
 module.exports = async (req, res) => {
-  if (!verifyRequest(req)) return res.status(401).json({ error: 'Not authenticated.' });
+  if (!requireOwner(req)) return res.status(403).json({ error: 'Owner permission required.' });
 
   try {
     const db = await readDb();

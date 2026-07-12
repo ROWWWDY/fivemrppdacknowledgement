@@ -12,20 +12,38 @@ function isProd() {
   return !!process.env.VERCEL;
 }
 
-function verifyRequest(req) {
+// Returns the session payload ({ type, username, permRole }) or null.
+function getSession(req) {
   const cookies = parse(req.headers.cookie || '');
   const token = cookies[COOKIE_NAME];
-  if (!token) return false;
+  if (!token) return null;
   try {
     const payload = jwt.verify(token, getSecret());
-    return payload && payload.role === 'admin';
+    if (!payload || payload.type !== 'admin') return null;
+    return payload;
   } catch (e) {
-    return false;
+    return null;
   }
 }
 
-function setSessionCookie(res) {
-  const token = jwt.sign({ role: 'admin' }, getSecret(), { expiresIn: SESSION_HOURS + 'h' });
+// True for any logged-in admin, regardless of role (owner or reviewer).
+function verifyRequest(req) {
+  return !!getSession(req);
+}
+
+// True only for the Owner role — used to gate Invites, Sync, Delete, and
+// admin-account management, which reviewers should never be able to touch.
+function requireOwner(req) {
+  const session = getSession(req);
+  return !!session && session.permRole === 'owner';
+}
+
+function setSessionCookie(res, { username, permRole }) {
+  const token = jwt.sign(
+    { type: 'admin', username, permRole },
+    getSecret(),
+    { expiresIn: SESSION_HOURS + 'h' }
+  );
   res.setHeader(
     'Set-Cookie',
     serialize(COOKIE_NAME, token, {
@@ -57,4 +75,11 @@ function getClientIp(req) {
   return req.socket && req.socket.remoteAddress ? req.socket.remoteAddress : 'unknown';
 }
 
-module.exports = { verifyRequest, setSessionCookie, clearSessionCookie, getClientIp };
+module.exports = {
+  verifyRequest,
+  requireOwner,
+  getSession,
+  setSessionCookie,
+  clearSessionCookie,
+  getClientIp
+};

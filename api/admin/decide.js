@@ -43,12 +43,16 @@ module.exports = async (req, res) => {
 
     const sheetUrl = db.config.sheetWebhookUrl;
     if (sheetUrl) {
-      // Fire-and-forget — don't make the admin wait on Google's response.
-      fetch(sheetUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'text/plain' },
-        body: JSON.stringify(application)
-      }).catch((err) => console.error('Google Sheet webhook failed:', err.message));
+      try {
+        await fetch(sheetUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain' },
+          body: JSON.stringify(application)
+        });
+      } catch (err) {
+        // Don't fail the accept/reject action just because the sheet is unreachable.
+        console.error('Google Sheet webhook failed:', err.message);
+      }
     }
 
     res.status(200).json({ ok: true, application });

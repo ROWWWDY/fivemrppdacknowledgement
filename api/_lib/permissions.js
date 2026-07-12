@@ -1,8 +1,3 @@
-// Single source of truth for what each role can do.
-// To add a new role: add a key here with its list of capabilities, then add
-// it as an <option> in the role dropdown in admin.html. Nothing else needs
-// to change — every endpoint and the dashboard UI read from this list.
-
 const ROLES = {
   owner: [
     'view_applications',

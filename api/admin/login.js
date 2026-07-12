@@ -1,4 +1,5 @@
-const { checkLoginRateLimit } = require('../_lib/db');
+const bcrypt = require('bcryptjs');
+const { checkLoginRateLimit, readDb } = require('../_lib/db');
 const { setSessionCookie, getClientIp } = require('../_lib/auth');
 
 function parseBody(req) {
@@ -26,14 +27,32 @@ module.exports = async (req, res) => {
   }
 
   const { username, password } = parseBody(req);
-
-  if (!process.env.ADMIN_USER || !process.env.ADMIN_PASS) {
-    return res.status(500).json({ error: 'Server is missing ADMIN_USER / ADMIN_PASS environment variables.' });
+  if (!username || !password) {
+    return res.status(401).json({ error: 'Incorrect name or password.' });
   }
 
-  if (username === process.env.ADMIN_USER && password === process.env.ADMIN_PASS) {
-    setSessionCookie(res);
+  // The bootstrap Owner account always works off the env vars, so you can
+  // never get locked out even if Redis or the admins list has issues.
+  if (
+    process.env.ADMIN_USER && process.env.ADMIN_PASS &&
+    username === process.env.ADMIN_USER && password === process.env.ADMIN_PASS
+  ) {
+    setSessionCookie(res, { username, permRole: 'owner' });
     return res.status(200).json({ ok: true });
   }
+
+  // Otherwise check admin accounts created inside the dashboard.
+  try {
+    const db = await readDb();
+    const account = db.admins.find((a) => a.username === username);
+    if (account && bcrypt.compareSync(password, account.passwordHash)) {
+      setSessionCookie(res, { username: account.username, permRole: account.permRole });
+      return res.status(200).json({ ok: true });
+    }
+  } catch (err) {
+    console.error('login lookup error:', err);
+    return res.status(500).json({ error: 'Could not reach the database.' });
+  }
+
   return res.status(401).json({ error: 'Incorrect name or password.' });
 };

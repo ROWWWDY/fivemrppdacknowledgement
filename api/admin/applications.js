@@ -1,8 +1,8 @@
-const { verifyRequest } = require('../_lib/auth');
+const { hasCapability } = require('../_lib/auth');
 const { readDb } = require('../_lib/db');
 
 module.exports = async (req, res) => {
-  if (!verifyRequest(req)) return res.status(401).json({ error: 'Not authenticated.' });
+  if (!hasCapability(req, 'view_applications')) return res.status(403).json({ error: 'You do not have permission to view applications.' });
   if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed.' });
 
   try {

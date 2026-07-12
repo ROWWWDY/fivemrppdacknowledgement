@@ -1,8 +1,8 @@
-const { verifyRequest } = require('../_lib/auth');
+const { requireOwner } = require('../_lib/auth');
 const { readDb, writeDb } = require('../_lib/db');
 
 module.exports = async (req, res) => {
-  if (!verifyRequest(req)) return res.status(401).json({ error: 'Not authenticated.' });
+  if (!requireOwner(req)) return res.status(403).json({ error: 'Owner permission required.' });
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed.' });
 
   const id = req.query.id;

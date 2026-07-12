@@ -1,5 +1,5 @@
 const crypto = require('crypto');
-const { requireOwner } = require('../_lib/auth');
+const { hasCapability } = require('../_lib/auth');
 const { readDb, writeDb } = require('../_lib/db');
 
 function parseBody(req) {
@@ -11,7 +11,7 @@ function parseBody(req) {
 }
 
 module.exports = async (req, res) => {
-  if (!requireOwner(req)) return res.status(403).json({ error: 'Owner permission required.' });
+  if (!hasCapability(req, 'manage_invites')) return res.status(403).json({ error: 'You do not have permission to manage invites.' });
 
   try {
     const db = await readDb();

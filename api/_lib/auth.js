@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken');
 const { parse, serialize } = require('cookie');
+const { can } = require('./permissions');
 
 const COOKIE_NAME = 'xpd_session';
 const SESSION_HOURS = 4;
@@ -31,11 +32,18 @@ function verifyRequest(req) {
   return !!getSession(req);
 }
 
-// True only for the Owner role — used to gate Invites, Sync, Delete, and
-// admin-account management, which reviewers should never be able to touch.
+// True only for the Owner role — used to gate admin-account management,
+// which no other role should ever be able to touch.
 function requireOwner(req) {
   const session = getSession(req);
   return !!session && session.permRole === 'owner';
+}
+
+// The general-purpose check — does this session's role include a given
+// capability? See _lib/permissions.js for the role → capability list.
+function hasCapability(req, capability) {
+  const session = getSession(req);
+  return !!session && can(session.permRole, capability);
 }
 
 function setSessionCookie(res, { username, permRole }) {
@@ -78,6 +86,7 @@ function getClientIp(req) {
 module.exports = {
   verifyRequest,
   requireOwner,
+  hasCapability,
   getSession,
   setSessionCookie,
   clearSessionCookie,

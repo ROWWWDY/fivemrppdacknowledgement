@@ -1,4 +1,4 @@
-const { hasCapability } = require('../_lib/auth');
+const { hasCapability, getSession } = require('../_lib/auth');
 const { readDb, writeDb } = require('../_lib/db');
 
 function parseBody(req) {
@@ -26,8 +26,10 @@ module.exports = async (req, res) => {
     const application = db.applications.find((a) => a.id === id);
     if (!application) return res.status(404).json({ error: 'Application not found.' });
 
+    const session = getSession(req);
+
     application.status = action;
-    application.reviewedBy = process.env.ADMIN_USER;
+    application.reviewedBy = (session && session.username) || 'unknown';
     application.reviewedAt = new Date().toLocaleString();
 
     if (action === 'rejected' && application.inviteId) {
@@ -44,10 +46,13 @@ module.exports = async (req, res) => {
     const sheetUrl = db.config.sheetWebhookUrl;
     if (sheetUrl) {
       try {
+        // Never send the applicant's IP to the sheet — that spreadsheet may
+        // be visible to people who shouldn't see it at all.
+        const { ip, ...sheetPayload } = application;
         await fetch(sheetUrl, {
           method: 'POST',
           headers: { 'Content-Type': 'text/plain' },
-          body: JSON.stringify(application)
+          body: JSON.stringify(sheetPayload)
         });
       } catch (err) {
         // Don't fail the accept/reject action just because the sheet is unreachable.
@@ -55,7 +60,9 @@ module.exports = async (req, res) => {
       }
     }
 
-    res.status(200).json({ ok: true, application });
+    const { ip, ...responseApplication } = application;
+
+    res.status(200).json({ ok: true, application: responseApplication });
   } catch (err) {
     console.error('decide error:', err);
     res.status(500).json({ error: 'Could not reach the database.' });

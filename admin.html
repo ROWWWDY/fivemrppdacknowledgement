@@ -344,6 +344,9 @@
       <button class="nav-item" data-cap="manage_admins" data-view="admins" data-title="Admin Accounts" data-sub="Create and manage dashboard admin accounts">
         <span class="ic">☺</span> Admins
       </button>
+      <button class="nav-item" data-cap="view_security_log" data-view="security" data-title="Security Log" data-sub="IP addresses tied to each submission, tracked separately">
+        <span class="ic">⛨</span> Security
+      </button>
       <button class="nav-item" data-cap="manage_sync" data-view="sync" data-title="Google Sheet Sync" data-sub="Send decisions to an external spreadsheet">
         <span class="ic">⇄</span> Sync
       </button>
@@ -474,6 +477,22 @@
           <tbody id="adminTableBody"></tbody>
         </table>
         <div class="empty-state" id="adminEmptyState" style="display:none;">No extra admin accounts yet — the bootstrap Owner login from your environment variables always works.</div>
+      </div>
+    </section>
+
+    <!-- Security -->
+    <section class="view" id="view-security">
+      <div class="panel sync-card" style="margin-bottom:20px;">
+        <p class="sync-note" style="margin:0;">This is tracked separately from application review, for security purposes only — it isn't shown anywhere in the normal Applications view. Each row is the IP address that submitted a given form.</p>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Form</th><th>Cadet</th><th>Discord</th><th>IP address</th><th>Filed</th></tr>
+          </thead>
+          <tbody id="securityTableBody"></tbody>
+        </table>
+        <div class="empty-state" id="securityEmptyState" style="display:none;">No submissions recorded yet.</div>
       </div>
     </section>
 
@@ -672,6 +691,7 @@
     }
     if(currentCapabilities.includes('manage_invites')) loadInvites();
     if(currentCapabilities.includes('manage_admins')) loadAdmins();
+    if(currentCapabilities.includes('view_security_log')) loadSecurityLog();
 
     loadApplications();
   }
@@ -1074,6 +1094,38 @@
       createAdminBtn.disabled = false;
     }
   });
+
+  /* ---------------- security log (IP tracking, owner only by default) ---------------- */
+  const securityTableBody = document.getElementById('securityTableBody');
+  const securityEmptyState = document.getElementById('securityEmptyState');
+
+  async function loadSecurityLog(){
+    try{
+      const res = await fetch('/api/admin/iplog', { credentials: 'include' });
+      if(!res.ok) return;
+      const data = await res.json();
+      renderSecurityLog(data.entries || []);
+    }catch(e){}
+  }
+
+  function renderSecurityLog(entries){
+    if(entries.length === 0){
+      securityTableBody.innerHTML = '';
+      securityEmptyState.style.display = 'block';
+      return;
+    }
+    securityEmptyState.style.display = 'none';
+
+    securityTableBody.innerHTML = entries.map(e => {
+      return '<tr>' +
+        '<td>' + escapeHtml(String(e.formNumber !== undefined ? e.formNumber : '—')) + '</td>' +
+        '<td>' + escapeHtml(e.charname || '—') + '</td>' +
+        '<td>' + escapeHtml(e.discordName || '—') + ' <span style="color:var(--text-faint);">(' + escapeHtml(e.discordId || '—') + ')</span></td>' +
+        '<td><code style="font-size:12.5px;">' + escapeHtml(e.ip || 'unknown') + '</code></td>' +
+        '<td>' + escapeHtml(e.date || '—') + '</td>' +
+      '</tr>';
+    }).join('');
+  }
 
   checkSession();
 })();

@@ -27,7 +27,7 @@ async function readDb() {
   const redis = getRedis();
   const data = await redis.get(DB_KEY);
   if (!data) {
-    return { counter: 200, applications: [], config: { sheetWebhookUrl: '' }, invites: [], admins: [], ipLog: [] };
+    return { counter: 200, applications: [], config: { sheetWebhookUrl: '' }, invites: [], admins: [], ipLog: [], roster: [] };
   }
   // The SDK may hand back a parsed object or a raw string depending on how
   // it was stored — handle both so this never breaks on a format change.
@@ -36,7 +36,7 @@ async function readDb() {
     try {
       db = JSON.parse(data);
     } catch (e) {
-      db = { counter: 200, applications: [], config: { sheetWebhookUrl: '' }, invites: [], admins: [], ipLog: [] };
+      db = { counter: 200, applications: [], config: { sheetWebhookUrl: '' }, invites: [], admins: [], ipLog: [], roster: [] };
     }
   } else {
     db = data;
@@ -45,6 +45,7 @@ async function readDb() {
   if (!Array.isArray(db.invites)) db.invites = [];
   if (!Array.isArray(db.admins)) db.admins = [];
   if (!Array.isArray(db.ipLog)) db.ipLog = [];
+  if (!Array.isArray(db.roster)) db.roster = [];
   return db;
 }
 

@@ -10,6 +10,7 @@ module.exports = async (req, res) => {
   try {
     const { readDb, writeDb } = require('./_lib/db');
     const { ACK_SECTIONS } = require('./_lib/ackSections');
+    const { getClientIp } = require('./_lib/auth');
 
     if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed.' });
 
@@ -62,11 +63,25 @@ module.exports = async (req, res) => {
       reviewedAt: null,
       inviteId: invite.id,
       ackSections: ACK_SECTIONS,
+      ip: getClientIp(req),
       ts: Date.now()
     };
 
     db.applications.push(record);
     db.counter = formNumber + 1;
+
+    // Permanent, append-only — kept separate from `applications` so it
+    // survives even if this application is later deleted or rejected.
+    db.ipLog.push({
+      formNumber,
+      applicationId: record.id,
+      charname: record.charname,
+      discordName: record.discordName,
+      discordId: record.discordId,
+      ip: record.ip,
+      date: record.date,
+      ts: record.ts
+    });
 
     invite.used = true;
     invite.usedAt = Date.now();

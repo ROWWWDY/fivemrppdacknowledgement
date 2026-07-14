@@ -4,6 +4,7 @@
 
 const { hasCapability, getSession } = require('../_lib/auth');
 const { readDb, writeDb } = require('../_lib/db');
+const { RANKS } = require('../_lib/ranks');
 
 function parseBody(req) {
   if (!req.body) return {};
@@ -21,6 +22,29 @@ function reopenInvite(db, application) {
     invite.usedAt = null;
     invite.applicationId = null;
   }
+}
+
+// Creates the roster entry the moment someone is Accepted — this is the
+// "automated roster update" hook. If they already have a roster entry
+// (e.g. re-accepted after being discharged), it's left alone rather than
+// overwritten, so promotion history isn't lost.
+function ensureRosterEntry(db, application, acceptedBy) {
+  const existing = db.roster.find((r) => r.discordId === application.discordId);
+  if (existing) return existing;
+
+  const entry = {
+    id: application.id + '-roster',
+    applicationId: application.id,
+    charname: application.charname,
+    discordName: application.discordName,
+    discordId: application.discordId,
+    rank: RANKS[0],
+    status: 'active',
+    joinDate: new Date().toLocaleString(),
+    promotionHistory: [{ rank: RANKS[0], date: new Date().toLocaleString(), by: acceptedBy, note: 'Accepted into the department' }]
+  };
+  db.roster.push(entry);
+  return entry;
 }
 
 module.exports = async (req, res) => {
@@ -51,12 +75,14 @@ module.exports = async (req, res) => {
     }
 
     const session = getSession(req);
+    const reviewer = (session && session.username) || 'unknown';
 
     application.status = action;
-    application.reviewedBy = (session && session.username) || 'unknown';
+    application.reviewedBy = reviewer;
     application.reviewedAt = new Date().toLocaleString();
 
     if (action === 'rejected') reopenInvite(db, application);
+    if (action === 'accepted') ensureRosterEntry(db, application, reviewer);
 
     await writeDb(db);
 

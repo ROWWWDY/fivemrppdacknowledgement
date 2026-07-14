@@ -12,6 +12,7 @@ const ROLES = {
     'manage_sync',
     'manage_admins',
     'view_security_log',
+    'manage_security_log',
     'view_roster',
     'manage_roster'
   ],

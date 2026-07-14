@@ -26,6 +26,30 @@ module.exports = async (req, res) => {
       return res.status(200).json({ admins, roles: Object.keys(ROLES) });
     }
 
+    if (req.method === 'POST' && req.query.action === 'update') {
+      const { id, permRole, password } = parseBody(req);
+      if (!id) return res.status(400).json({ error: 'Missing admin id.' });
+
+      const target = db.admins.find((a) => a.id === id);
+      if (!target) return res.status(404).json({ error: 'Admin not found.' });
+
+      if (permRole !== undefined) {
+        if (!Object.prototype.hasOwnProperty.call(ROLES, permRole)) {
+          return res.status(400).json({ error: 'Invalid role.' });
+        }
+        target.permRole = permRole;
+      }
+      if (password) {
+        if (String(password).length < 6) {
+          return res.status(400).json({ error: 'Password must be at least 6 characters.' });
+        }
+        target.passwordHash = bcrypt.hashSync(String(password), 10);
+      }
+
+      await writeDb(db);
+      return res.status(200).json({ ok: true, admin: { id: target.id, username: target.username, permRole: target.permRole, createdAt: target.createdAt } });
+    }
+
     if (req.method === 'POST') {
       const { username, password, permRole } = parseBody(req);
       const cleanUsername = String(username || '').trim().slice(0, 60);

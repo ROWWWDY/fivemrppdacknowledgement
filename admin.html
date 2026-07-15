@@ -96,6 +96,13 @@
   }
   select:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-dim);}
   input:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-dim);}
+  textarea{
+    width:100%;background:var(--surface-2);border:1px solid var(--border-strong);
+    border-radius:6px;color:var(--text);padding:11.5px 14px;font-size:14px;
+    font-family:'Inter',sans-serif;outline:none;resize:vertical;min-height:64px;line-height:1.5;
+    transition:border-color .15s ease, box-shadow .15s ease;
+  }
+  textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-dim);}
   .btn{
     font-family:'Inter',sans-serif;font-weight:600;font-size:13.5px;
     border-radius:6px;padding:11.5px 21px;cursor:pointer;border:1px solid var(--border-strong);
@@ -532,7 +539,8 @@
           <option value="all">All (incl. discharged)</option>
           <option value="discharged">Discharged only</option>
         </select>
-        <button class="btn" id="rosterManageToggleBtn" data-cap="manage_roster" style="margin-left:auto;">Manage roster</button>
+        <a href="/roster" target="_blank" class="btn" style="margin-left:auto;text-decoration:none;">View public page ↗</a>
+        <button class="btn" id="rosterManageToggleBtn" data-cap="manage_roster">Manage roster</button>
       </div>
 
       <div id="rosterBoard"></div>
@@ -560,7 +568,17 @@
             <button class="btn primary" id="officerSubmitBtn">Add officer</button>
             <button class="btn" id="officerCancelBtn" style="display:none;">Cancel</button>
           </div>
-          <p class="sync-note" style="margin:0;">For existing PD management who don't need to go through the intake form — adds them straight to the roster at whatever rank you set.</p>
+          <div class="sync-row" style="margin-bottom:0;">
+            <div class="field">
+              <label for="officerImageUrl">Photo URL <span style="text-transform:none;font-weight:400;">(optional)</span></label>
+              <input type="text" id="officerImageUrl" placeholder="https://...">
+            </div>
+            <div class="field" style="flex:2 1 320px;">
+              <label for="officerDescription">Description <span style="text-transform:none;font-weight:400;">(shown on the public roster page)</span></label>
+              <textarea id="officerDescription" placeholder="A short bio or note about this officer..." style="min-height:44px;"></textarea>
+            </div>
+          </div>
+          <p class="sync-note" style="margin:0;">For existing PD management who don't need to go through the intake form — adds them straight to the roster at whatever rank you set. Photo and description are visible on the public roster page at <code>/roster</code>.</p>
           <div class="sync-status" id="officerFormStatus"><span>—</span></div>
         </div>
 
@@ -1363,6 +1381,8 @@
   const officerDiscordName = document.getElementById('officerDiscordName');
   const officerDiscordId = document.getElementById('officerDiscordId');
   const officerRank = document.getElementById('officerRank');
+  const officerImageUrl = document.getElementById('officerImageUrl');
+  const officerDescription = document.getElementById('officerDescription');
   const officerSubmitBtn = document.getElementById('officerSubmitBtn');
   const officerCancelBtn = document.getElementById('officerCancelBtn');
   const officerFormStatus = document.getElementById('officerFormStatus');
@@ -1592,6 +1612,8 @@
     officerCharname.value = entry.charname || '';
     officerDiscordName.value = entry.discordName || '';
     officerDiscordId.value = entry.discordId || '';
+    officerImageUrl.value = entry.imageUrl || '';
+    officerDescription.value = entry.description || '';
     if(currentRanks.includes(entry.rank)) officerRank.value = entry.rank;
     officerSubmitBtn.textContent = 'Save changes';
     officerCancelBtn.style.display = '';
@@ -1605,6 +1627,8 @@
     officerCharname.value = '';
     officerDiscordName.value = '';
     officerDiscordId.value = '';
+    officerImageUrl.value = '';
+    officerDescription.value = '';
     officerSubmitBtn.textContent = 'Add officer';
     officerCancelBtn.style.display = 'none';
     officerFormStatus.innerHTML = '<span>—</span>';
@@ -1617,9 +1641,15 @@
     const discordName = officerDiscordName.value.trim();
     const discordId = officerDiscordId.value.trim();
     const rank = officerRank.value;
+    const imageUrl = officerImageUrl.value.trim();
+    const description = officerDescription.value.trim();
 
     if(!charname || !discordName || !discordId){
       officerFormStatus.innerHTML = '<span style="color:var(--rejected);">Character name, Discord name, and Discord ID are all required.</span>';
+      return;
+    }
+    if(imageUrl && !/^https?:\/\//i.test(imageUrl)){
+      officerFormStatus.innerHTML = '<span style="color:var(--rejected);">Photo URL must start with http:// or https://.</span>';
       return;
     }
 
@@ -1627,8 +1657,8 @@
     const isEdit = !!editingOfficerId;
     const action = isEdit ? 'edit' : 'add';
     const payload = isEdit
-      ? { id: editingOfficerId, charname, discordName, discordId, rank }
-      : { charname, discordName, discordId, rank };
+      ? { id: editingOfficerId, charname, discordName, discordId, rank, imageUrl, description }
+      : { charname, discordName, discordId, rank, imageUrl, description };
 
     try{
       const res = await fetch('/api/admin/roster?action=' + action, {

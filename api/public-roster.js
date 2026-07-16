@@ -18,9 +18,7 @@ module.exports = async (req, res) => {
       .map((r) => ({
         id: r.id,
         charname: r.charname,
-        discordName: r.discordName,
         rank: r.rank,
-        joinDate: r.joinDate,
         imageUrl: r.imageUrl || '',
         description: r.description || ''
       }));
